@@ -1,5 +1,5 @@
 import telebot
-from .conf import *
+from conf import *
 import flask
 import logging
 
@@ -12,9 +12,10 @@ WEBHOOK_URL_PATH = "/{}/".format(TOKEN)
 START_MESSAGE = '''Здравствуйте! 
 Этот бот умеет делать чудесные вещи, например подсчитывать число символов в вашем сообщении'''
 
+
 bot = telebot.TeleBot(TOKEN)
 bot.remove_webhook()  # удаляем предыдущие вебхуки, если они были
-bot.set_webhook(url=WEBHOOK_URL_BASE+WEBHOOK_URL_PATH)  # добавляем новый вебхук
+bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH)  # добавляем новый вебхук
 
 app = flask.Flask(__name__)
 
@@ -24,18 +25,15 @@ def send_welcome(message):
     bot.send_message(message.chat.id, START_MESSAGE)
 
 
-# TODO: for test
 @bot.message_handler(func=lambda m: True)  # этот обработчик реагирует все прочие сообщения
 def send_len(message):
     bot.send_message(message.chat.id,
                      'В вашем сообщении {} символов.'.format(len(message.text)))
 
 
-# TODO: check if it is necessary
-# пустая главная страничка для проверки
 @app.route('/', methods=['GET', 'HEAD'])
 def index():
-    return 'ok'
+    return 'it works!'
 
 
 # обрабатываем вызовы вебхука
@@ -49,6 +47,8 @@ def webhook():
     else:
         flask.abort(403)
 
+
+# TODO: посмотреть доки к этому методу и в проде сделать как там пишут
 # Start flask server
 app.run(host=WEBHOOK_LISTEN,
         port=WEBHOOK_PORT,
