@@ -18,9 +18,11 @@ search_photo_keyboard.add(buttons[0], buttons[1], buttons[2])
 search_photo_keyboard.add(buttons[3], buttons[4], return_button)
 
 menu = types.ReplyKeyboardMarkup()
-menu.add(types.KeyboardButton("Задать вопрос"), types.KeyboardButton("Фотографии"),
-         types.KeyboardButton("Статьи"), types.KeyboardButton("Гайды"),
-         types.KeyboardButton("Где купить"))
+menu.add(types.KeyboardButton("Задать вопрос"),
+         types.KeyboardButton("Фотографии"),
+         types.KeyboardButton("Где купить"),
+         types.KeyboardButton("Статьи"),
+         types.KeyboardButton("Обучающие материалы"))
 
 logger = telebot.logger
 telebot.logger.setLevel(logging.INFO)
@@ -37,6 +39,12 @@ def start(message):
 @bot.message_handler(commands=['help'])
 def help(message):
     bot.send_message(message.chat.id, phrases.help_message)
+
+
+@bot.message_handler(regexp="Меню")
+def return_to_menu(message):
+    bot.send_message(message.chat.id, "Для получения справки нажмите /help",
+                     reply_markup=menu)
 
 
 @bot.message_handler(regexp="(\/question)|(Задать вопрос)")
@@ -156,7 +164,7 @@ def buy(message):
     bot.send_message(message.chat.id, "Эта функция пока не реализована")
 
 
-@bot.message_handler(regexp="(\/guides)|(Гайды)")
+@bot.message_handler(regexp="(\/guides)|(Обучающие материалы)")
 def buy(message):
     bot.send_message(message.chat.id, "Эта функция пока не реализована")
 
@@ -167,7 +175,7 @@ def buy(message):
     url_button = types.InlineKeyboardButton(text="Перейти в магазин",
                                             url=conf.STORE_LINK)
     keyboard.add(url_button)
-    bot.send_message(message.chat.id, "Где купить", reply_markup=keyboard)
+    bot.send_message(message.chat.id, "Где купить:", reply_markup=keyboard)
 
 
 if __name__ == "__main__":
