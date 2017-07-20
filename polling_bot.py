@@ -1,8 +1,11 @@
 import MySQLdb
+
 import telebot
 from telebot import types
+
 import conf
 import phrases
+
 import logging
 from random import shuffle
 
@@ -48,7 +51,7 @@ def return_to_menu(message):
 
 
 @bot.message_handler(regexp="(\/question)|(Задать вопрос)")
-def search_faq(message):
+def faq_search(message):
     keyboard = types.InlineKeyboardMarkup()
     url_button = types.InlineKeyboardButton(text="Перейти на сайт",
                                             url=conf.FAQ_SEARCH_LINK)
@@ -61,7 +64,7 @@ def search_faq(message):
 
 
 @bot.message_handler(regexp="(\/photo)|(Фотографии)")
-def search_photo(message):
+def photo_search(message):
     bot.send_message(message.chat.id, "Выберите категорию поиска:",
                      reply_markup=search_photo_keyboard)
 
@@ -160,13 +163,19 @@ def print_photo(message, row):
 
 
 @bot.message_handler(regexp="(\/articles)|(Статьи)")
-def buy(message):
+def articles_search(message):
     bot.send_message(message.chat.id, "Эта функция пока не реализована")
+
+############################################################################
 
 
 @bot.message_handler(regexp="(\/guides)|(Обучающие материалы)")
-def buy(message):
+def guides_search(message):
+
+
     bot.send_message(message.chat.id, "Эта функция пока не реализована")
+
+############################################################################
 
 
 @bot.message_handler(regexp="(\/buy)|(Где купить)")
