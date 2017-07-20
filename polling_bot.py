@@ -10,15 +10,17 @@ from random import shuffle
 photo_search_categories = ["Экспозиция", "Объектив", "Жанр", "Камера", "Автор"]
 
 hide = types.ReplyKeyboardRemove()
-return_button = types.InlineKeyboardButton("Меню")
+return_button = types.KeyboardButton("Меню")
 
 search_photo_keyboard = types.ReplyKeyboardMarkup(one_time_keyboard=False)
-buttons = [types.InlineKeyboardButton(c) for c in photo_search_categories]
+buttons = [types.KeyboardButton(c) for c in photo_search_categories]
 search_photo_keyboard.add(buttons[0], buttons[1], buttons[2])
 search_photo_keyboard.add(buttons[3], buttons[4], return_button)
 
 menu = types.ReplyKeyboardMarkup()
-menu.add(types.InlineKeyboardButton)
+menu.add(types.KeyboardButton("Задать вопрос"), types.KeyboardButton("Фотографии"),
+         types.KeyboardButton("Статьи"), types.KeyboardButton("Гайды"),
+         types.KeyboardButton("Где купить"))
 
 logger = telebot.logger
 telebot.logger.setLevel(logging.INFO)
@@ -29,15 +31,15 @@ bot.remove_webhook()
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id, phrases.start_message)
+    bot.send_message(message.chat.id, phrases.start_message, reply_markup=menu)
 
 
 @bot.message_handler(commands=['help'])
-def start(message):
+def help(message):
     bot.send_message(message.chat.id, phrases.help_message)
 
 
-@bot.message_handler(commands=['question'])
+@bot.message_handler(regexp="(\/question)|(Задать вопрос)")
 def search_faq(message):
     keyboard = types.InlineKeyboardMarkup()
     url_button = types.InlineKeyboardButton(text="Перейти на сайт",
@@ -50,7 +52,7 @@ def search_faq(message):
 ############################################################################
 
 
-@bot.message_handler(commands=['photo'])
+@bot.message_handler(regexp="(\/photo)|(Фотографии)")
 def search_photo(message):
     bot.send_message(message.chat.id, "Выберите категорию поиска:",
                      reply_markup=search_photo_keyboard)
@@ -149,12 +151,17 @@ def print_photo(message, row):
 ############################################################################
 
 
-@bot.message_handler(commands=['guides', 'articles'])
+@bot.message_handler(regexp="(\/articles)|(Статьи)")
 def buy(message):
     bot.send_message(message.chat.id, "Эта функция пока не реализована")
 
 
-@bot.message_handler(commands=['buy'])
+@bot.message_handler(regexp="(\/guides)|(Гайды)")
+def buy(message):
+    bot.send_message(message.chat.id, "Эта функция пока не реализована")
+
+
+@bot.message_handler(regexp="(\/buy)|(Где купить)")
 def buy(message):
     keyboard = types.InlineKeyboardMarkup()
     url_button = types.InlineKeyboardButton(text="Перейти в магазин",

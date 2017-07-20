@@ -1,12 +1,13 @@
 
-start_message = '''Здравствуйте! 
+start_message = '''
+Привет! 
 Этот бот призван помочь начинающим фотографам и облегчить взаимодействие с фотоаппаратами Nikon
 
-Мой username @nikon_rus_bot
+username @nikon_rus_bot
 
 ✅ Официальный сайт
 www.nikon.ru
-✅ интернет-магазин Nikon
+✅ Интернет-магазин Nikon
 nikonstore.ru 
 ✅ Амбассадоры Nikon
 nikonpro.ru 
