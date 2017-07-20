@@ -22,15 +22,17 @@ search_photo_keyboard.add(buttons[0], buttons[1], buttons[2])
 search_photo_keyboard.add(buttons[3], buttons[4], return_button)
 
 menu = types.ReplyKeyboardMarkup()
-menu.add(types.KeyboardButton("Задать вопрос"),
-         types.KeyboardButton("Фотографии"),
-         types.KeyboardButton("Контакты"),
+menu.add(types.KeyboardButton("Фото"),
+         types.KeyboardButton("Советы"),
+         )
+menu.add(types.KeyboardButton("Вопрос"),
          types.KeyboardButton("Статьи"),
-         types.KeyboardButton("Обучающие материалы"))
+         types.KeyboardButton("Контакты")
+         )
 
 guides_search_type = types.ReplyKeyboardMarkup()
-guides_search_type.add(types.KeyboardButton("Поиск по категории"),
-                       types.KeyboardButton("Поиск по ключевому слову"),
+guides_search_type.add(types.KeyboardButton("Категории"),
+                       types.KeyboardButton("Поиск"),
                        return_button)
 
 logger = telebot.logger
@@ -56,7 +58,7 @@ def return_to_menu(message):
                      reply_markup=menu)
 
 
-@bot.message_handler(regexp="(\/question)|(Задать вопрос)")
+@bot.message_handler(regexp="(\/question)|(Вопрос)")
 def faq_search(message):
     keyboard = types.InlineKeyboardMarkup()
     url_button = types.InlineKeyboardButton(text="Перейти на сайт",
@@ -70,7 +72,7 @@ def faq_search(message):
 ############################################################################
 
 
-@bot.message_handler(regexp="(\/photo)|(Фотографии)")
+@bot.message_handler(regexp="(\/photo)|(Фото)")
 def photo_search(message):
     bot.send_message(message.chat.id, "Выберите категорию поиска:",
                      reply_markup=search_photo_keyboard)
@@ -174,12 +176,12 @@ def articles_search(message):
 ############################################################################
 
 
-@bot.message_handler(regexp="(\/guides)|(Обучающие материалы)")
+@bot.message_handler(regexp="(\/guides)|(Советы)")
 def guides_search(message):
     bot.send_message(message.chat.id, "Как будем искать?", reply_markup=guides_search_type)
 
 
-@bot.message_handler(regexp="Поиск по категории")
+@bot.message_handler(regexp="Категории")
 def guides_cat_search(message):
     categories = types.InlineKeyboardMarkup()
     for g in guides_categories:
@@ -196,7 +198,7 @@ def show_category_guides(call):
         bot.send_message(call.message.chat.id, "{0}\n{1}".format(row[1], row[0]))
 
 
-@bot.message_handler(regexp="Поиск по ключевому слову")
+@bot.message_handler(regexp="Поиск")
 def guides_keyword_search(message):
     msg = bot.send_message(message.chat.id,
                            "Введите ключевое слово:",
@@ -223,11 +225,7 @@ def search_guides_by_keywords(message):
 
 @bot.message_handler(regexp="(\/contacts)|(Контакты)")
 def buy(message):
-    keyboard = types.InlineKeyboardMarkup()
-    url_button = types.InlineKeyboardButton(text="Перейти в магазин",
-                                            url=conf.STORE_LINK)
-    keyboard.add(url_button)
-    bot.send_message(message.chat.id, "Где купить:", reply_markup=keyboard)
+    bot.send_message(message.chat.id, phrases.contacts, reply_markup=menu)
 
 
 if __name__ == "__main__":
