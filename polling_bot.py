@@ -57,6 +57,8 @@ def return_to_menu(message):
     bot.send_message(message.chat.id, "Для получения справки нажмите /help",
                      reply_markup=menu)
 
+############################################################################
+
 
 @bot.message_handler(regexp="(\/question)|(Вопрос)")
 def faq_search(message):
@@ -85,26 +87,31 @@ def search_category_choice(message):
                                "Введите значение экспозиции (например, 1/125 или 1/2500)",
                                reply_markup=force_reply)
         bot.register_next_step_handler(msg, search_by_exposure)
+
     elif message.text == 'Объектив':
         msg = bot.send_message(message.chat.id,
                                "Введите название (можно частичное) объектива",
                                reply_markup=force_reply)
         bot.register_next_step_handler(msg, search_by_lens)
+
     elif message.text == 'Жанр':
         keyboard = types.InlineKeyboardMarkup()
         for g in photo_genres:
             keyboard.add(types.InlineKeyboardButton(text=g, callback_data=g))
         bot.send_message(message.chat.id, "Выберите жанр:", reply_markup=keyboard)
+
     elif message.text == 'Камера':
         msg = bot.send_message(message.chat.id,
                                "Введите название камеры (например Nikon D4)",
                                reply_markup=force_reply)
         bot.register_next_step_handler(msg, search_by_camera)
+
     elif message.text == 'Автор':
-        msg = bot.send_message(message.chat.id,
-                               "Введите имя и/или фамилию автора",
-                               reply_markup=force_reply)
-        bot.register_next_step_handler(msg, search_by_author)
+        keyboard = types.InlineKeyboardMarkup()
+        for a in authors:
+            keyboard.add(types.InlineKeyboardButton(text=a, callback_data=a))
+        bot.send_message(message.chat.id, "Выберите автора")
+
     else:
         bot.send_message(message.chat.id, "Неверное название категории. "
                                           "Выберите одну из предложенных на клавиатуре.")
@@ -139,11 +146,12 @@ def search_by_camera(message):
     show_photos(message, list(cursor.fetchall()), "фотографий с заданной камерой не найдено")
 
 
-def search_by_author(message):
-    query = "select * from photos where {0} LIKE \'%{1}%\'".format("author", message.text)
+@bot.callback_query_handler(func=lambda call: call.data in authors)
+def search_by_author(call):
+    query = "select * from photos where {0} LIKE \'%{1}%\'".format("author", call.data)
     cursor.execute(query)
     # logging.info(query)
-    show_photos(message, list(cursor.fetchall()), "такого автора пока нет в нашей базе данных")
+    show_photos(call.message, list(cursor.fetchall()), "такого автора нет в нашей базе данных")
 
 
 def show_photos(message, data, not_found_text):
@@ -239,6 +247,8 @@ if __name__ == "__main__":
     photo_genres = [g[0] for g in list(cursor.fetchall())]
     cursor.execute('select distinct(category) from infographics')
     guides_categories = [c[0] for c in list(cursor.fetchall())]
+    cursor.execute('select distinct(author) from photos')
+    authors = [a[0] for a in list(cursor.fetchall())]
 
     bot.polling(none_stop=True)
     cursor.close()
