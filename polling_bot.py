@@ -10,6 +10,7 @@ import logging
 from random import shuffle
 
 
+
 photo_search_categories = ["Экспозиция", "Объектив", "Жанр", "Камера", "Автор"]
 
 hide = types.ReplyKeyboardRemove()
@@ -40,6 +41,11 @@ telebot.logger.setLevel(logging.INFO)
 
 bot = telebot.TeleBot(conf.TOKEN)
 bot.remove_webhook()
+
+
+def pairwise(iterable):
+    a = iter(iterable)
+    return zip(a, a)
 
 
 @bot.message_handler(commands=['start'])
@@ -82,6 +88,7 @@ def photo_search(message):
 
 @bot.message_handler(func=lambda message: message.text in photo_search_categories)
 def search_category_choice(message):
+    keyboard = types.InlineKeyboardMarkup()
     if message.text == 'Экспозиция':
         msg = bot.send_message(message.chat.id,
                                "Введите значение экспозиции (например, 1/125 или 1/2500)",
@@ -95,22 +102,20 @@ def search_category_choice(message):
         bot.register_next_step_handler(msg, search_by_lens)
 
     elif message.text == 'Жанр':
-        keyboard = types.InlineKeyboardMarkup()
         for g in photo_genres:
             keyboard.add(types.InlineKeyboardButton(text=g, callback_data=g))
         bot.send_message(message.chat.id, "Выберите жанр:", reply_markup=keyboard)
 
     elif message.text == 'Камера':
-        msg = bot.send_message(message.chat.id,
-                               "Введите название камеры (например Nikon D4)",
-                               reply_markup=force_reply)
-        bot.register_next_step_handler(msg, search_by_camera)
+        for c1, c2 in pairwise(cameras):
+            keyboard.add(types.InlineKeyboardButton(text=c1, callback_data=c1),
+                         types.InlineKeyboardButton(text=c2, callback_data=c2))
+        bot.send_message(message.chat.id, "Выберите камеру:", reply_markup=keyboard)
 
     elif message.text == 'Автор':
-        keyboard = types.InlineKeyboardMarkup()
         for a in authors:
             keyboard.add(types.InlineKeyboardButton(text=a, callback_data=a))
-        bot.send_message(message.chat.id, "Выберите автора")
+        bot.send_message(message.chat.id, "Выберите автора", reply_markup=keyboard)
 
     else:
         bot.send_message(message.chat.id, "Неверное название категории. "
@@ -139,11 +144,13 @@ def search_category_choice(call):
                 "фотографий выбранного жанра не найдено")
 
 
-def search_by_camera(message):
-    query = "select * from photos where {0} = \'{1}\'".format("camera", message.text)
+@bot.callback_query_handler(func=lambda call: call.data in cameras)
+def search_by_camera(call):
+    query = "select * from photos where {0} = \'{1}\'".format("camera", call.data)
     cursor.execute(query)
     # logging.info(query)
-    show_photos(message, list(cursor.fetchall()), "фотографий с заданной камерой не найдено")
+    show_photos(call.message, list(cursor.fetchall()),
+                "фотографий с заданной камерой не найдено")
 
 
 @bot.callback_query_handler(func=lambda call: call.data in authors)
@@ -239,16 +246,22 @@ def buy(message):
 if __name__ == "__main__":
     print('start bot')
     connection = MySQLdb.connect(conf.DB_HOST, conf.DB_USER, conf.DB_PASSWORD, conf.DB_NAME,
-                                 use_unicode=True, charset="utf8")
+                                 use_unicode=True, charset="utf8", autocommit=True)
     cursor = connection.cursor()
 
     # create category lists for searching
+    """cursor.execute("UPDATE photos set camera = TRIM(camera), author = TRIM(author),"
+                   " genre = TRIM(genre);")"""
+
     cursor.execute('select distinct(genre) from photos')
     photo_genres = [g[0] for g in list(cursor.fetchall())]
-    cursor.execute('select distinct(category) from infographics')
-    guides_categories = [c[0] for c in list(cursor.fetchall())]
     cursor.execute('select distinct(author) from photos')
     authors = [a[0] for a in list(cursor.fetchall())]
+    cursor.execute('select distinct(camera) from photos order by SUBSTRING(camera, 7)')
+    cameras = [c[0] for c in list(cursor.fetchall())]
+
+    cursor.execute('select distinct(category) from infographics')
+    guides_categories = [c[0] for c in list(cursor.fetchall())]
 
     bot.polling(none_stop=True)
     cursor.close()
