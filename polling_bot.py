@@ -10,7 +10,6 @@ import logging
 from random import shuffle
 
 
-
 photo_search_categories = ["Экспозиция", "Объектив", "Жанр", "Камера", "Автор"]
 
 hide = types.ReplyKeyboardRemove()
@@ -97,9 +96,9 @@ def search_category_choice(message):
 
     elif message.text == 'Объектив':
         msg = bot.send_message(message.chat.id,
-                               "Введите название (можно частичное) объектива",
+                               "Введите фокусное расстояние объектива",
                                reply_markup=force_reply)
-        bot.register_next_step_handler(msg, search_by_lens)
+        bot.register_next_step_handler(msg, choose_lens)
 
     elif message.text == 'Жанр':
         for g in photo_genres:
@@ -130,11 +129,30 @@ def search_by_exposure(message):
                 "фотографий с заданной экспозицией не найдено")
 
 
-def search_by_lens(message):
-    query = "select * from photos where {0} LIKE \'%{1}%\'".format("lens", message.text)
+def choose_lens(message):
+    query = "select distinct(lens) from photos where lens LIKE '%NIKKOR {}mm%'".format(message.text)
     cursor.execute(query)
     # logging.info(query)
-    show_photos(message, list(cursor.fetchall()), "фотографий с таким объективом не найдено")
+
+    res = list(cursor.fetchall())
+    if res:
+        kb = types.InlineKeyboardMarkup()
+        found_lens = [l[0] for l in res]
+        for l in found_lens:
+            kb.add(types.InlineKeyboardButton(text=l, callback_data=l))
+
+        bot.send_message(message.chat.id, "Выберите модель объектива:",
+                         reply_markup=kb)
+    else:
+        bot.send_message(message.chat.id, "Объектива с таким фокусным расстоянием не найдено",
+                         reply_markup=search_photo_keyboard)
+
+
+@bot.callback_query_handler(func=lambda call: call.data in all_lens)
+def search_by_lens(call):
+    query = "select * from photos where lens = \'{0}\'".format(call.data)
+    cursor.execute(query)
+    show_photos(call.message, list(cursor.fetchall()), "Что-то пошло не так...")
 
 
 @bot.callback_query_handler(func=lambda call: call.data in photo_genres)
@@ -259,6 +277,8 @@ if __name__ == "__main__":
     authors = [a[0] for a in list(cursor.fetchall())]
     cursor.execute('select distinct(camera) from photos order by SUBSTRING(camera, 7)')
     cameras = [c[0] for c in list(cursor.fetchall())]
+    cursor.execute('select distinct(lens) from photos')
+    all_lens = [l[0] for l in list(cursor.fetchall())]
 
     cursor.execute('select distinct(category) from infographics')
     guides_categories = [c[0] for c in list(cursor.fetchall())]
