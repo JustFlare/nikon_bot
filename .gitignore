@@ -2,7 +2,6 @@
 conf.py
 todo.txt
 test.py
-db.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
