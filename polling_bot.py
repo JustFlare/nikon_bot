@@ -86,7 +86,7 @@ def photo_search(message):
 
 
 @bot.message_handler(func=lambda message: message.text in photo_search_categories)
-def search_category_choice(message):
+def choose_search_category(message):
     keyboard = types.InlineKeyboardMarkup()
     if message.text == 'Экспозиция':
         msg = bot.send_message(message.chat.id,
@@ -156,7 +156,7 @@ def search_by_lens(call):
 
 
 @bot.callback_query_handler(func=lambda call: call.data in photo_genres)
-def search_genres(call):
+def search_by_genre(call):
     cursor.execute("select * from photos where {0} = \'{1}\'".format("genre", call.data))
     show_photos(call.message, list(cursor.fetchall()),
                 "фотографий выбранного жанра не найдено")
