@@ -130,7 +130,7 @@ def search_by_exposure(message):
 
 
 def choose_lens(message):
-    query = "select distinct(lens) from photos where lens LIKE '%NIKKOR {}mm%'".format(message.text)
+    query = "select distinct(lens) from photos where lens LIKE '%NIKKOR %{}%mm%'".format(message.text)
     cursor.execute(query)
     # logging.info(query)
 
