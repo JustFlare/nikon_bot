@@ -130,7 +130,8 @@ def search_by_exposure(message):
 
 
 def choose_lens(message):
-    query = "select distinct(lens) from photos where lens LIKE '%NIKKOR %{}%mm%'".format(message.text)
+    query = "select distinct(lens) from photos where lens LIKE '%NIKKOR %{}%mm%'".format(
+        message.text)
     cursor.execute(query)
     # logging.info(query)
 
@@ -194,9 +195,9 @@ def show_photos(message, data, not_found_text):
 
 def print_photo(message, row):
     link, exposure, lens, genre, aperture, camera, iso, focal_length, author = row
-    bot.send_message(message.chat.id, "{0}\n{1}\n{2}\n{3}\n{4}\n{5}\n{6}\n{7}\n{8}"
-                     .format(link, exposure, lens, genre, aperture, camera, iso,
-                             focal_length, author),
+    bot.send_message(message.chat.id,
+                     phrases.PHOTO_PRINT_PATTERN.format(camera, lens, aperture, exposure, iso,
+                                                        focal_length, author, link),
                      reply_markup=search_photo_keyboard)
 
 ############################################################################
