@@ -54,7 +54,7 @@ def start(message):
 
 @bot.message_handler(commands=['help'])
 def help(message):
-    bot.send_message(message.chat.id, phrases.help_message)
+    bot.send_message(message.chat.id, phrases.help_message, parse_mode="Markdown")
 
 
 @bot.message_handler(regexp="Меню")
@@ -66,15 +66,47 @@ def return_to_menu(message):
 
 
 @bot.message_handler(regexp="(\/question)|(Вопрос)")
-def faq_search(message):
-    keyboard = types.InlineKeyboardMarkup()
-    url_button = types.InlineKeyboardButton(text="Перейти на сайт",
-                                            url=conf.FAQ_SEARCH_LINK)
-    keyboard.add(url_button)
-    bot.send_message(message.chat.id,
-                     "Попробуйте найти ответы с помощью функции поиска на нашем сайте"
-                     " (поиск непосредственно в боте - в разработке)",
-                     reply_markup=keyboard)
+def faq_keyword_search(message):
+    msg = bot.send_message(message.chat.id,
+                           "Введите запрос (например: KeyMission, SnapBridge, матрица):",
+                           reply_markup=force_reply)
+    bot.register_next_step_handler(msg, search_faq_by_keywords)
+
+
+def search_faq_by_keywords(message):
+    words = message.text.split()
+
+    if len(words) == 1:
+        cursor.execute("SELECT * FROM `faq` Where locate('{0}', title) > 0"
+                       .format(message.text[:-2]))
+        data = list(cursor.fetchall())
+    else:
+        query = "SELECT * FROM `faq` Where "
+        add_q = "locate('{0}', title) > 0 and "
+
+        # TODO: сделать запрос который бы сортировал выдачу по числу вхождений
+        for w in words:
+            query += add_q.format(w[:-2])
+        query = query[:-5]  # remove last " and "
+        print(query)
+        cursor.execute(query)
+        data = list(cursor.fetchall())
+
+        # if we can't find with "and" condition try to make search weaker - with "or"
+        if len(data) == 0:
+            query = query.replace("and", "or")
+            print(query)
+            cursor.execute(query)
+            data = list(cursor.fetchall())
+
+    if len(data) > 0:
+        data = data[:conf.MAX_KEYWORD_SEARCH] if len(data) > conf.MAX_KEYWORD_SEARCH else data
+        for row in data:
+            bot.send_message(message.chat.id, "{0}\n{1}".format(row[1], row[0]),
+                             reply_markup=menu)
+    else:
+        bot.send_message(message.chat.id, "По этому запросу ничего не найдено.",
+                         reply_markup=menu)
 
 ############################################################################
 
@@ -273,8 +305,9 @@ def search_guides_by_keywords(message):
 
 
 @bot.message_handler(regexp="(\/contacts)|(Контакты)")
-def buy(message):
-    bot.send_message(message.chat.id, phrases.contacts, reply_markup=menu)
+def contacts(message):
+    bot.send_message(message.chat.id, phrases.contacts,
+                     reply_markup=menu, parse_mode="Markdown")
 
 
 if __name__ == "__main__":
@@ -298,6 +331,9 @@ if __name__ == "__main__":
 
     cursor.execute('select distinct(category) from infographics')
     guides_categories = [c[0] for c in list(cursor.fetchall())]
+
+    cursor.execute('select distinct(category) from faq')
+    faq_categories = [c[0] for c in list(cursor.fetchall())]
 
     cursor.execute('select distinct(genre) from articles')
     article_genres = [g[0] for g in list(cursor.fetchall())]
