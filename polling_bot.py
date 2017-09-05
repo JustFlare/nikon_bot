@@ -1,13 +1,13 @@
 import MySQLdb
 
-import telebot
 from telebot import types
+import telebot
 
-import conf
 import phrases
+import conf
 
-import logging
 from random import shuffle
+import logging
 
 
 photo_search_categories = ["Экспозиция", "Объектив", "Жанр", "Камера", "Автор"]
@@ -77,18 +77,18 @@ def search_faq_by_keywords(message):
     words = message.text.split()
 
     if len(words) == 1:
-        cursor.execute("SELECT * FROM `faq` Where locate('{0}', title) > 0"
+        cursor.execute("SELECT url, title FROM `faq` Where locate('{0}', title) > 0"
                        .format(message.text[:-2]))
         data = list(cursor.fetchall())
     else:
-        query = "SELECT * FROM `faq` Where "
+        query = "SELECT url, title FROM `faq` Where "
         add_q = "locate('{0}', title) > 0 and "
 
         # TODO: сделать запрос который бы сортировал выдачу по числу вхождений
         for w in words:
             query += add_q.format(w[:-2])
         query = query[:-5]  # remove last " and "
-        print(query)
+
         cursor.execute(query)
         data = list(cursor.fetchall())
 
@@ -109,6 +109,8 @@ def search_faq_by_keywords(message):
                          reply_markup=menu)
 
 ############################################################################
+photo_select_query = "select url, exposure, lens, genre, aperture, camera," \
+                     " ISO, focal_length, author from photos where "
 
 
 @bot.message_handler(regexp="(\/photo)|(Фото)")
@@ -154,7 +156,7 @@ def choose_search_category(message):
 
 
 def search_by_exposure(message):
-    query = "select * from photos where {0} = \'{1}\'".format("exposure", message.text)
+    query = photo_select_query + " {0} = \'{1}\'".format("exposure", message.text)
     cursor.execute(query)
     # logging.info(query)
     show_photos(message, list(cursor.fetchall()),
@@ -183,32 +185,30 @@ def choose_lens(message):
 
 @bot.callback_query_handler(func=lambda call: call.data in all_lens)
 def search_by_lens(call):
-    query = "select * from photos where lens = \'{0}\'".format(call.data)
+    query = photo_select_query + "lens = \'{0}\'".format(call.data)
     cursor.execute(query)
     show_photos(call.message, list(cursor.fetchall()), "Что-то пошло не так...")
 
 
 @bot.callback_query_handler(func=lambda call: call.data in photo_genres)
 def search_by_genre(call):
-    cursor.execute("select * from photos where {0} = \'{1}\'".format("genre", call.data))
+    cursor.execute(photo_select_query + "{0} = \'{1}\'".format("genre", call.data))
     show_photos(call.message, list(cursor.fetchall()),
                 "фотографий выбранного жанра не найдено")
 
 
 @bot.callback_query_handler(func=lambda call: call.data in cameras)
 def search_by_camera(call):
-    query = "select * from photos where {0} = \'{1}\'".format("camera", call.data)
+    query = photo_select_query + "{0} = \'{1}\'".format("camera", call.data)
     cursor.execute(query)
-    # logging.info(query)
     show_photos(call.message, list(cursor.fetchall()),
                 "фотографий с заданной камерой не найдено")
 
 
 @bot.callback_query_handler(func=lambda call: call.data in authors)
 def search_by_author(call):
-    query = "select * from photos where {0} LIKE \'%{1}%\'".format("author", call.data)
+    query = photo_select_query + " {0} LIKE \'%{1}%\'".format("author", call.data)
     cursor.execute(query)
-    # logging.info(query)
     show_photos(call.message, list(cursor.fetchall()), "такого автора нет в нашей базе данных")
 
 
@@ -222,14 +222,13 @@ def show_photos(message, data, not_found_text):
         shuffle(data)
         for row in data[:conf.MAX_PHOTOS_TO_SHOW]:
             print_photo(message, row)
-        # TODO: кнопка/опция "показать еще"
 
 
 def print_photo(message, row):
-    link, exposure, lens, genre, aperture, camera, iso, focal_length, author = row
+    url, exposure, lens, genre, aperture, camera, iso, focal_length, author = row
     bot.send_message(message.chat.id,
                      phrases.PHOTO_PRINT_PATTERN.format(camera, lens, aperture, exposure, iso,
-                                                        focal_length, author, link),
+                                                        focal_length, author, url),
                      reply_markup=search_photo_keyboard)
 
 ############################################################################
@@ -245,7 +244,7 @@ def articles_search(message):
 
 @bot.callback_query_handler(func=lambda call: call.data in article_genres)
 def get_articles(call):
-    cursor.execute("select * from articles where {0} = \'{1}\'".format("genre", call.data))
+    cursor.execute("select url, `name`, author from articles where {0} = \'{1}\'".format("genre", call.data))
     res = list(cursor.fetchall())
     if res:
         for row in res:
@@ -273,7 +272,7 @@ def guides_cat_search(message):
 
 @bot.callback_query_handler(func=lambda call: call.data in guides_categories)
 def show_category_guides(call):
-    cursor.execute("select filename, `name` from infographics where category = '{0}'"
+    cursor.execute("select url, `name` from infographics where category = '{0}'"
                    .format(call.data))
     for row in list(cursor.fetchall()):
         bot.send_message(call.message.chat.id, "{0}\n{1}".format(row[1], row[0]))
@@ -288,7 +287,7 @@ def guides_keyword_search(message):
 
 
 def search_guides_by_keywords(message):
-    cursor.execute("select filename, `name` from infographics where `name` LIKE \'%{0}%\'"
+    cursor.execute("select url, `name` from infographics where `name` LIKE \'%{0}%\'"
                    .format(message.text))
     data = list(cursor.fetchall())
 
