@@ -9,6 +9,13 @@ import conf
 from random import shuffle
 import logging
 
+logging.basicConfig(filename="telebot.log",
+                    filemode='w',
+                    level=logging.DEBUG,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+logger = telebot.logger
+telebot.logger.setLevel(logging.INFO)
 
 photo_search_categories = ["Экспозиция", "Объектив", "Жанр", "Камера", "Автор"]
 
@@ -21,22 +28,19 @@ buttons = [types.KeyboardButton(c) for c in photo_search_categories]
 search_photo_keyboard.add(buttons[0], buttons[1], buttons[2])
 search_photo_keyboard.add(buttons[3], buttons[4], return_button)
 
-menu = types.ReplyKeyboardMarkup()
-menu.add(types.KeyboardButton("Фото"),
-         types.KeyboardButton("Советы"),
-         )
-menu.add(types.KeyboardButton("Вопрос"),
-         types.KeyboardButton("Статьи"),
-         types.KeyboardButton("Контакты")
-         )
+menu_keyboard = types.ReplyKeyboardMarkup()
+menu_keyboard.add(types.KeyboardButton("Фото"),
+                  types.KeyboardButton("Советы"),
+                  )
+menu_keyboard.add(types.KeyboardButton("Вопрос"),
+                  types.KeyboardButton("Статьи"),
+                  types.KeyboardButton("Контакты")
+                  )
 
 guides_search_type = types.ReplyKeyboardMarkup()
 guides_search_type.add(types.KeyboardButton("Категории"),
                        types.KeyboardButton("Поиск"),
                        return_button)
-
-logger = telebot.logger
-telebot.logger.setLevel(logging.INFO)
 
 bot = telebot.TeleBot(conf.TOKEN)
 bot.remove_webhook()
@@ -49,7 +53,7 @@ def pairwise(iterable):
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.send_message(message.chat.id, phrases.start_message, reply_markup=menu)
+    bot.send_message(message.chat.id, phrases.start_message, reply_markup=menu_keyboard)
 
 
 @bot.message_handler(commands=['help'])
@@ -57,15 +61,15 @@ def help(message):
     bot.send_message(message.chat.id, phrases.help_message, parse_mode="Markdown")
 
 
-@bot.message_handler(regexp="Меню")
+@bot.message_handler(regexp="^Меню$")
 def return_to_menu(message):
     bot.send_message(message.chat.id, "Для получения справки нажмите /help",
-                     reply_markup=menu)
+                     reply_markup=menu_keyboard)
 
 ############################################################################
 
 
-@bot.message_handler(regexp="(\/question)|(Вопрос)")
+@bot.message_handler(regexp="^(\/question)|(Вопрос)$")
 def faq_keyword_search(message):
     msg = bot.send_message(message.chat.id,
                            "Введите запрос (например: KeyMission, SnapBridge, матрица):",
@@ -95,7 +99,6 @@ def search_faq_by_keywords(message):
         # if we can't find with "and" condition try to make search weaker - with "or"
         if len(data) == 0:
             query = query.replace("and", "or")
-            print(query)
             cursor.execute(query)
             data = list(cursor.fetchall())
 
@@ -103,17 +106,17 @@ def search_faq_by_keywords(message):
         data = data[:conf.MAX_KEYWORD_SEARCH] if len(data) > conf.MAX_KEYWORD_SEARCH else data
         for row in data:
             bot.send_message(message.chat.id, "{0}\n{1}".format(row[1], row[0]),
-                             reply_markup=menu)
+                             reply_markup=menu_keyboard)
     else:
         bot.send_message(message.chat.id, "По этому запросу ничего не найдено.",
-                         reply_markup=menu)
+                         reply_markup=menu_keyboard)
 
 ############################################################################
 photo_select_query = "select url, exposure, lens, genre, aperture, camera," \
                      " ISO, focal_length, author from photos where "
 
 
-@bot.message_handler(regexp="(\/photo)|(Фото)")
+@bot.message_handler(regexp="^(\/photo)|(Фото)$")
 def photo_search(message):
     bot.send_message(message.chat.id, "Выберите категорию поиска:",
                      reply_markup=search_photo_keyboard)
@@ -234,7 +237,7 @@ def print_photo(message, row):
 ############################################################################
 
 
-@bot.message_handler(regexp="(\/articles)|(Статьи)")
+@bot.message_handler(regexp="^(\/articles)|(Статьи)$")
 def articles_search(message):
     keyboard = types.InlineKeyboardMarkup()
     for g in article_genres:
@@ -256,12 +259,12 @@ def get_articles(call):
 ############################################################################
 
 
-@bot.message_handler(regexp="(\/guides)|(Советы)")
+@bot.message_handler(regexp="^(\/guides)|(Советы)$")
 def guides_search(message):
     bot.send_message(message.chat.id, "Как будем искать?", reply_markup=guides_search_type)
 
 
-@bot.message_handler(regexp="Категории")
+@bot.message_handler(regexp="^Категории$")
 def guides_cat_search(message):
     categories = types.InlineKeyboardMarkup()
     for g in guides_categories:
@@ -278,7 +281,7 @@ def show_category_guides(call):
         bot.send_message(call.message.chat.id, "{0}\n{1}".format(row[1], row[0]))
 
 
-@bot.message_handler(regexp="Поиск")
+@bot.message_handler(regexp="^Поиск$")
 def guides_keyword_search(message):
     msg = bot.send_message(message.chat.id,
                            "Введите ключевое слово:",
@@ -303,10 +306,10 @@ def search_guides_by_keywords(message):
 ############################################################################
 
 
-@bot.message_handler(regexp="(\/contacts)|(Контакты)")
+@bot.message_handler(regexp="^(\/contacts)|(Контакты)$")
 def contacts(message):
     bot.send_message(message.chat.id, phrases.contacts,
-                     reply_markup=menu, parse_mode="Markdown")
+                     reply_markup=menu_keyboard, parse_mode="Markdown")
 
 
 if __name__ == "__main__":
