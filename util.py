@@ -4,6 +4,7 @@ import conf
 import MySQLdb
 import logging
 
+
 hide = types.ReplyKeyboardRemove()
 return_button = types.KeyboardButton("Меню")
 force_reply = types.ForceReply(selective=False)

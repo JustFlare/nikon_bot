@@ -1,3 +1,4 @@
+from state import *
 from util import *
 from random import shuffle
 
@@ -31,20 +32,26 @@ def pairwise(iterable):
 
 @bot.message_handler(regexp="^(\/photo)|(Фото)$")
 def photo_search(message):
-    bot.send_message(message.chat.id, "Выберите категорию поиска:",
-                     reply_markup=search_photo_keyboard)
+    if check_state():
+        bot.send_message(message.chat.id, "Выберите категорию поиска:",
+                         reply_markup=search_photo_keyboard)
 
 
 @bot.message_handler(func=lambda message: message.text in photo_search_categories)
 def choose_search_category(message):
+    if not check_state():
+        return
+
     keyboard = types.InlineKeyboardMarkup()
     if message.text == 'Экспозиция':
+        start_enter_text()
         msg = bot.send_message(message.chat.id,
                                "Введите значение экспозиции (например, 1/125 или 1/2500)",
                                reply_markup=force_reply)
         bot.register_next_step_handler(msg, search_by_exposure)
 
     elif message.text == 'Объектив':
+        start_enter_text()
         msg = bot.send_message(message.chat.id,
                                "Введите фокусное расстояние объектива",
                                reply_markup=force_reply)
@@ -72,6 +79,7 @@ def choose_search_category(message):
 
 
 def search_by_exposure(message):
+    finish_enter_text()
     query = photo_select_query + " {0} = \'{1}\'".format("exposure", message.text)
     cursor.execute(query)
     show_photos(message, list(cursor.fetchall()),
@@ -79,7 +87,8 @@ def search_by_exposure(message):
 
 
 def choose_lens(message):
-    query = "select distinct(lens) from photos where lens LIKE '%NIKKOR %{}%mm%'".format(
+    finish_enter_text()
+    query = "select distinct(lens) from photos where lens LIKE '%NIKKOR %{0}%mm%'".format(
         message.text)
     cursor.execute(query)
 

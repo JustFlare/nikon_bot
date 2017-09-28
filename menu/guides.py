@@ -1,3 +1,4 @@
+from state import *
 from util import *
 import conf
 
@@ -12,16 +13,18 @@ guides_search_type.add(types.KeyboardButton("Категории"),
 
 @bot.message_handler(regexp="^(\/guides)|(Советы)$")
 def guides_search(message):
-    bot.send_message(message.chat.id, "Как будем искать?", reply_markup=guides_search_type)
+    if check_state():
+        bot.send_message(message.chat.id, "Как будем искать?", reply_markup=guides_search_type)
 
 
 @bot.message_handler(regexp="^Категории$")
 def guides_cat_search(message):
-    categories = types.InlineKeyboardMarkup()
-    for g in guides_categories:
-        categories.add(types.InlineKeyboardButton(text=g, callback_data=g))
+    if check_state():
+        categories = types.InlineKeyboardMarkup()
+        for g in guides_categories:
+            categories.add(types.InlineKeyboardButton(text=g, callback_data=g))
 
-    bot.send_message(message.chat.id, "Выберите категорию", reply_markup=categories)
+        bot.send_message(message.chat.id, "Выберите категорию", reply_markup=categories)
 
 
 @bot.callback_query_handler(func=lambda call: call.data in guides_categories)
@@ -34,6 +37,8 @@ def show_category_guides(call):
 
 @bot.message_handler(regexp="^Поиск$")
 def guides_keyword_search(message):
+    start_enter_text()
+
     msg = bot.send_message(message.chat.id,
                            "Введите ключевое слово:",
                            reply_markup=force_reply)
@@ -41,6 +46,8 @@ def guides_keyword_search(message):
 
 
 def search_guides_by_keywords(message):
+    finish_enter_text()
+
     cursor.execute("select url, `name` from infographics where `name` LIKE \'%{0}%\'"
                    .format(message.text))
     data = list(cursor.fetchall())

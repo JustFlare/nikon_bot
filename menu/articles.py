@@ -1,3 +1,4 @@
+from state import *
 from util import *
 
 cursor.execute('select distinct(genre) from articles')
@@ -6,10 +7,11 @@ article_genres = [g[0] for g in list(cursor.fetchall())]
 
 @bot.message_handler(regexp="^(\/articles)|(Статьи)$")
 def articles_search(message):
-    keyboard = types.InlineKeyboardMarkup()
-    for g in article_genres:
-        keyboard.add(types.InlineKeyboardButton(text=g, callback_data=g))
-    bot.send_message(message.chat.id, "Выберите жанр:", reply_markup=keyboard)
+    if check_state():
+        keyboard = types.InlineKeyboardMarkup()
+        for g in article_genres:
+            keyboard.add(types.InlineKeyboardButton(text=g, callback_data=g))
+        bot.send_message(message.chat.id, "Выберите жанр:", reply_markup=keyboard)
 
 
 @bot.callback_query_handler(func=lambda call: call.data in article_genres)

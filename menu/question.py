@@ -1,16 +1,20 @@
+from state import *
 from util import *
 import conf
 
 
 @bot.message_handler(regexp="^(\/question)|(Вопрос)$")
 def faq_keyword_search(message):
-    msg = bot.send_message(message.chat.id,
-                           "Введите запрос (например: KeyMission, SnapBridge, матрица):",
-                           reply_markup=force_reply)
-    bot.register_next_step_handler(msg, search_faq_by_keywords)
+    if check_state():
+        start_enter_text()
+        msg = bot.send_message(message.chat.id,
+                               "Введите запрос (например: KeyMission, SnapBridge, матрица):",
+                               reply_markup=force_reply)
+        bot.register_next_step_handler(msg, search_faq_by_keywords)
 
 
 def search_faq_by_keywords(message):
+    finish_enter_text()
     words = message.text.split()
 
     if len(words) == 1:
