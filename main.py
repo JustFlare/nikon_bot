@@ -2,6 +2,7 @@ from state import *
 from util import *
 import import_dir
 import phrases
+import time
 
 import_dir.do('menu', globals())
 
@@ -31,4 +32,13 @@ def contacts(message):
 
 
 if __name__ == "__main__":
-    bot.polling(none_stop=True, timeout=5)
+    while True:
+        try:
+            bot.polling(none_stop=True, timeout=5)
+        # ConnectionError and ReadTimeout because of possible timout of the requests library
+        # TypeError for moviepy errors
+        # maybe there are others, therefore Exception
+        except Exception as e:
+            logger.error(e)
+            time.sleep(15)
+
