@@ -30,4 +30,5 @@ bot = telebot.TeleBot(conf.TOKEN)
 
 connection = MySQLdb.connect(conf.DB_HOST, conf.DB_USER, conf.DB_PASSWORD, conf.DB_NAME,
                              use_unicode=True, charset="utf8", autocommit=True)
+connection.ping(True)
 cursor = connection.cursor()
