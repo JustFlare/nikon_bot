@@ -22,14 +22,14 @@ def help(message):
 
 @bot.message_handler(regexp="^Меню$")
 def return_to_menu(message):
-    if check_state():
+    if check_state(message.chat.id):
         bot.send_message(message.chat.id, "Для получения справки нажмите /help",
                          reply_markup=menu_keyboard)
 
 
 @bot.message_handler(regexp="^(\/contacts)|(Контакты)$")
 def contacts(message):
-    if check_state():
+    if check_state(message.chat.id):
         bot.send_message(message.chat.id, phrases.contacts,
                          reply_markup=menu_keyboard, parse_mode="Markdown")
 

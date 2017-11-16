@@ -8,7 +8,7 @@ www.nikonstore.ru
 nikonpro.ru 
 
 💬 **Предложения и замечания по боту**
-just1flare@gmail.com
+danilyuk@mediastars.ru
 
 username `@NikonRussiaBot`
 '''

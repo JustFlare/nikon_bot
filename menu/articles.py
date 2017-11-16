@@ -1,5 +1,5 @@
-from state import *
 from util import *
+import state
 
 article_genres = []
 
@@ -12,7 +12,7 @@ def update_articles_categories():
 
 @bot.message_handler(regexp="^(\/articles)|(Статьи)$")
 def articles_search(message):
-    if check_state():
+    if state.check_state(message.chat.id):
         keyboard = types.InlineKeyboardMarkup()
         for g in article_genres:
             keyboard.add(types.InlineKeyboardButton(text=g, callback_data=g))

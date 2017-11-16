@@ -1,8 +1,7 @@
-from state import *
-from util import *
 from random import shuffle
-
+from util import *
 import phrases
+import state
 import conf
 
 photo_select_query = "select url, exposure, lens, genre, aperture, camera," \
@@ -35,26 +34,26 @@ def pairwise(iterable):
 
 @bot.message_handler(regexp="^(\/photo)|(Фото)$")
 def photo_search(message):
-    if check_state():
+    if state.check_state(message.chat.id):
         bot.send_message(message.chat.id, "Выберите категорию поиска:",
                          reply_markup=search_photo_keyboard)
 
 
 @bot.message_handler(func=lambda message: message.text in photo_search_categories)
 def choose_search_category(message):
-    if not check_state():
+    if not state.check_state(message.chat.id):
         return
 
     keyboard = types.InlineKeyboardMarkup()
     if message.text == 'Экспозиция':
-        start_enter_text()
+        state.start_enter_text(message.chat.id)
         msg = bot.send_message(message.chat.id,
                                "Введите значение экспозиции (например, 1/125 или 1/2500)",
                                reply_markup=force_reply)
         bot.register_next_step_handler(msg, search_by_exposure)
 
     elif message.text == 'Объектив':
-        start_enter_text()
+        state.start_enter_text(message.chat.id)
         msg = bot.send_message(message.chat.id,
                                "Введите фокусное расстояние объектива",
                                reply_markup=force_reply)
@@ -82,7 +81,7 @@ def choose_search_category(message):
 
 
 def search_by_exposure(message):
-    finish_enter_text()
+    state.finish_enter_text(message.chat.id)
     query = photo_select_query + " {0} = \'{1}\'".format("exposure", message.text)
     cursor.execute(query)
     show_photos(message, list(cursor.fetchall()),
@@ -90,7 +89,7 @@ def search_by_exposure(message):
 
 
 def choose_lens(message):
-    finish_enter_text()
+    state.finish_enter_text(message.chat.id)
     query = "select distinct(lens) from photos where lens LIKE '%NIKKOR %{0}%mm%'".format(
         message.text)
     cursor.execute(query)

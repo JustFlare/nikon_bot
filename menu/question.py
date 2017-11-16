@@ -1,12 +1,12 @@
-from state import *
+import state
 from util import *
 import conf
 
 
 @bot.message_handler(regexp="^(\/question)|(Вопрос)$")
 def faq_keyword_search(message):
-    if check_state():
-        start_enter_text()
+    if state.check_state(message.chat.id):
+        state.start_enter_text(message.chat.id)
         msg = bot.send_message(message.chat.id,
                                "Введите запрос (например: KeyMission, SnapBridge, матрица):",
                                reply_markup=force_reply)
@@ -14,7 +14,7 @@ def faq_keyword_search(message):
 
 
 def search_faq_by_keywords(message):
-    finish_enter_text()
+    state.finish_enter_text(message.chat.id)
     words = message.text.split()
 
     if len(words) == 1:

@@ -1,16 +1,16 @@
 
-_enter_text = False
+_hold_ids = set()
 
 
-def check_state():
-    return not _enter_text
+def check_state(cid):
+    return cid not in _hold_ids
 
 
-def start_enter_text():
-    global _enter_text
-    _enter_text = True
+def start_enter_text(cid):
+    global _hold_ids
+    _hold_ids.add(cid)
 
 
-def finish_enter_text():
-    global _enter_text
-    _enter_text = False
+def finish_enter_text(cid):
+    global _hold_ids
+    _hold_ids.remove(cid)

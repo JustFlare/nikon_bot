@@ -1,5 +1,5 @@
-from state import *
 from util import *
+import state
 import conf
 
 guides_search_type = types.ReplyKeyboardMarkup()
@@ -17,13 +17,13 @@ def update_guides_categories():
 
 @bot.message_handler(regexp="^(\/guides)|(Советы)$")
 def guides_search(message):
-    if check_state():
+    if state.check_state(message.chat.id):
         bot.send_message(message.chat.id, "Как будем искать?", reply_markup=guides_search_type)
 
 
 @bot.message_handler(regexp="^Категории$")
 def guides_cat_search(message):
-    if check_state():
+    if state.check_state(message.chat.id):
         categories = types.InlineKeyboardMarkup()
         for g in guides_categories:
             categories.add(types.InlineKeyboardButton(text=g, callback_data=g))
@@ -41,7 +41,7 @@ def show_category_guides(call):
 
 @bot.message_handler(regexp="^Поиск$")
 def guides_keyword_search(message):
-    start_enter_text()
+    state.start_enter_text(message.chat.id)
 
     msg = bot.send_message(message.chat.id,
                            "Введите ключевое слово:",
@@ -50,7 +50,7 @@ def guides_keyword_search(message):
 
 
 def search_guides_by_keywords(message):
-    finish_enter_text()
+    state.finish_enter_text(message.chat.id)
 
     cursor.execute("select url, `name` from infographics where `name` LIKE \'%{0}%\'"
                    .format(message.text))
