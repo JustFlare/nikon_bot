@@ -1,3 +1,6 @@
+from menu.articles import update_articles_categories
+from menu.guides import update_guides_categories
+from menu.photo import update_photo_categories
 from state import *
 from util import *
 import import_dir
@@ -31,11 +34,19 @@ def contacts(message):
                          reply_markup=menu_keyboard, parse_mode="Markdown")
 
 
+def update_categories():
+    update_articles_categories()
+    update_guides_categories()
+    update_photo_categories()
+
+
 if __name__ == "__main__":
     while True:
+        logger.info('update category lists')
+        update_categories()
         try:
             bot.polling(none_stop=True, timeout=5)
-        # ConnectionError and ReadTimeout because of possible timout of the requests library
+        # ConnectionError and ReadTimeout because of possible timeout of the requests library
         # TypeError for moviepy errors
         # maybe there are others, therefore Exception
         except Exception as e:

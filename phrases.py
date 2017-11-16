@@ -10,7 +10,7 @@ nikonpro.ru
 💬 **Предложения и замечания по боту**
 just1flare@gmail.com
 
-username `@nikon_rus_bot`
+username `@NikonRussiaBot`
 '''
 
 start_message = '''
@@ -32,9 +32,9 @@ help_message = '''
 /contacts - контакты
 
 💬 **Предложения и замечания по боту**
-just1flare@gmail.com
+danilyuk@mediastars.ru
 
-username `@nikon_rus_bot`
+username `@NikonRussiaBot`
 '''
 
 PHOTO_PRINT_PATTERN = "Камера: {0}\nОбъектив: {1}\nДиафрагма: {2}\nВыдержка: {3}\nISO: {4}\nФокусное расстояние: {5}\nАвтор: {6}\n{7}"

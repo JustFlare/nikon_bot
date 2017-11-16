@@ -2,13 +2,17 @@ from state import *
 from util import *
 import conf
 
-cursor.execute('select distinct(category) from infographics')
-guides_categories = [c[0] for c in list(cursor.fetchall())]
-
 guides_search_type = types.ReplyKeyboardMarkup()
 guides_search_type.add(types.KeyboardButton("Категории"),
                        types.KeyboardButton("Поиск"),
                        return_button)
+guides_categories = []
+
+
+def update_guides_categories():
+    global guides_categories
+    cursor.execute('select distinct(category) from infographics')
+    guides_categories = [c[0] for c in list(cursor.fetchall())]
 
 
 @bot.message_handler(regexp="^(\/guides)|(Советы)$")

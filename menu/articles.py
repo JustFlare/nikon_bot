@@ -1,8 +1,13 @@
 from state import *
 from util import *
 
-cursor.execute('select distinct(genre) from articles')
-article_genres = [g[0] for g in list(cursor.fetchall())]
+article_genres = []
+
+
+def update_articles_categories():
+    global article_genres
+    cursor.execute('select distinct(genre) from articles')
+    article_genres = [g[0] for g in list(cursor.fetchall())]
 
 
 @bot.message_handler(regexp="^(\/articles)|(Статьи)$")

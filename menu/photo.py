@@ -8,21 +8,24 @@ import conf
 photo_select_query = "select url, exposure, lens, genre, aperture, camera," \
                      " ISO, focal_length, author from photos where "
 
-
+photo_genres, authors, cameras, all_lens = [], [], [], []
 photo_search_categories = ["Экспозиция", "Объектив", "Жанр", "Камера", "Автор"]
 search_photo_keyboard = types.ReplyKeyboardMarkup(one_time_keyboard=False)
 buttons = [types.KeyboardButton(c) for c in photo_search_categories]
 search_photo_keyboard.add(buttons[0], buttons[1], buttons[2])
 search_photo_keyboard.add(buttons[3], buttons[4], return_button)
 
-cursor.execute('select distinct(genre) from photos')
-photo_genres = [g[0] for g in list(cursor.fetchall())]
-cursor.execute('select distinct(author) from photos')
-authors = [a[0] for a in list(cursor.fetchall())]
-cursor.execute('select distinct(camera) from photos order by SUBSTRING(camera, 7)')
-cameras = [c[0] for c in list(cursor.fetchall())]
-cursor.execute('select distinct(lens) from photos')
-all_lens = [l[0] for l in list(cursor.fetchall())]
+
+def update_photo_categories():
+    global photo_genres, authors, cameras, all_lens
+    cursor.execute('select distinct(genre) from photos')
+    photo_genres = [g[0] for g in list(cursor.fetchall())]
+    cursor.execute('select distinct(author) from photos')
+    authors = [a[0] for a in list(cursor.fetchall())]
+    cursor.execute('select distinct(camera) from photos order by SUBSTRING(camera, 7)')
+    cameras = [c[0] for c in list(cursor.fetchall())]
+    cursor.execute('select distinct(lens) from photos')
+    all_lens = [l[0] for l in list(cursor.fetchall())]
 
 
 def pairwise(iterable):
